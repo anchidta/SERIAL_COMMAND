@@ -33,13 +33,13 @@ Motor::Motor(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin,uns
   digitalWrite(dir, HIGH);
   digitalWrite(sleep, HIGH);
   delay(1);
-  Relaese_reset();
+  relaese_reset();
 
 }
 
 Motor::Motor(){}
 
-void Motor::Enable()
+void Motor::On()
 {
 
 digitalWrite(en, LOW);//active low
@@ -48,7 +48,7 @@ digitalWrite(reset, HIGH);//active low
 
 }
 
-void Motor::Disable()
+void Motor::Off()
 {
 
   digitalWrite(en, HIGH);
@@ -56,7 +56,7 @@ void Motor::Disable()
   // digitalWrite(reset, LOW);
 
 }
-void Motor::Relaese_reset()
+void Motor::relaese_reset()
 {
     digitalWrite(step, LOW);
     digitalWrite(reset, HIGH);
@@ -67,7 +67,7 @@ void Motor::Relaese_reset()
 
 
 }
-void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin,int topButtom,int bottomButtom)
+void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin,int topButton,int bottomButton)
 {
   // Serial.println("INIT");
   step = step_pin;
@@ -75,8 +75,8 @@ void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin
   en = en_pin;
   sleep =sleep_pin;
   reset =reset_pin;
-  top_switch = topButtom;
-  buttom_switch= bottomButtom;
+  top_switch = topButton;
+  buttom_switch= bottomButton;
 
   pinMode(step, OUTPUT); // set LED  pin as OUTPUT
   pinMode(dir, OUTPUT); // set LED  pin as OUTPUT
@@ -94,7 +94,7 @@ void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin
   int status;
   int switch_state;
   // Serial.println("init_pump");
-  Enable();
+  On();
   int Istop = digitalRead(top_switch);
   int Isbottom = digitalRead(buttom_switch);
 
@@ -189,7 +189,7 @@ void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin
 
       
     }
-    Disable();
+    Off();
     
 
 }
@@ -218,7 +218,7 @@ void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin
   digitalWrite(dir, HIGH);
   digitalWrite(sleep, HIGH);
   delay(1);
-  Relaese_reset();
+  relaese_reset();
 }
 
 void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin)
@@ -235,37 +235,113 @@ void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin
   pinMode(en_pin, OUTPUT); // set LED  pin as OUTPUT
   pinMode(sleep_pin, OUTPUT); // set LED  pin as OUTPUT
   pinMode(reset_pin, OUTPUT); // set LED  pin as OUTPUT
+
+
   digitalWrite(en, HIGH);
   // digitalWrite(reset, LOW);
   digitalWrite(dir, HIGH);
   digitalWrite(sleep, HIGH);
   delay(1);
-  Relaese_reset();
+  relaese_reset();
 }
-void Motor::Sleep_Disable()
+void Motor::Sleep_Off()
 {
 digitalWrite(sleep, HIGH);
 }
 
-void Motor::Sleep_Enable()
+void Motor::Sleep_On()
 {
 digitalWrite(sleep, LOW);
 }
 
-void Motor::Reset_Disable()
+void Motor::Reset_Off()
 {
 digitalWrite(reset, HIGH);
 }
 
-void Motor::Reset_Enable()
+void Motor::Reset_On()
 {
 digitalWrite(reset, LOW);
 }
 
 
+void Motor::go_front(int mm)
+{
+  bool status = false;
+  int degree = (mm)*180;
+  int stepsPerRevolution = degree/0.46875;
+  // Set motor direction clockwise
+  
+  digitalWrite(dir,LOW);
+  while(status != true){
+  for(int x = 0; x < stepsPerRevolution; x++)
+    {
+      digitalWrite(step, HIGH);
+      delayMicroseconds(1000);
+      digitalWrite(step, LOW);
+      delayMicroseconds(1000);
+    }
+    delay(1000); 
+    status = true;
+    }
 
+}
 
+void Motor::go_back(int mm)
+{
+  bool status = false;
+  int degree = (mm)*180;
+  int stepsPerRevolution = degree/0.46875;
+  // Set motor direction clockwise
+  
+  digitalWrite(dir,HIGH);
+  while(status != true){
+  for(int x = 0; x < stepsPerRevolution; x++)
+    {
+      digitalWrite(step, HIGH);
+      delayMicroseconds(1000);
+      digitalWrite(step, LOW);
+      delayMicroseconds(1000);
+    }
+    delay(1000);
+  status = true; 
+  }
+}
 
+void Motor::Move2degree(int degree,int count)
+{
+  
+  int time = 0;
+  int stepsPerRevolution = degree;//0.46875;
+  // Set motor direction clockwise
+  
+  digitalWrite(dir,HIGH);
+  while(time < count){ 
+    for(int x = 0; x < stepsPerRevolution; x++)
+      {
+        digitalWrite(step, HIGH);
+        delayMicroseconds(1000);
+        digitalWrite(step, LOW);
+        delayMicroseconds(1000);
+      }
+      delay(1000); // Wait a second
+      
+      // Set motor direction counterclockwise
+      digitalWrite(dir, LOW);
+
+    // Spin motor quickly-
+    for(int x = 0; x < stepsPerRevolution; x++)
+    {
+      digitalWrite(step, HIGH);
+      delayMicroseconds(1000);
+      digitalWrite(step, LOW);
+      delayMicroseconds(1000);
+    }
+    delay(1000); // Wait a second
+  count = count + 1;
+
+}
+}
 //DIR = high CLOCKWISE 1
 //dir = LOW COUTERCLOCKWISE 0 
 void Motor::Move(uint8_t dir_need,int step_check,int delay_ms)
@@ -281,38 +357,78 @@ void Motor::Move(uint8_t dir_need,int step_check,int delay_ms)
         delayMicroseconds(delay_ms);
         digitalWrite(step, LOW);
         delayMicroseconds(delay_ms);
+      
+        // 
+
+
+        // delayMicroseconds(1);
+        // Print(step_count);
       }
       digitalWrite(2, HIGH);
       delayMicroseconds(1);
+      // delay(1000); 
+      // step_count = 0;
+      // Print("move complete");// Wait a second
+
+
+     
+      // Set motor direction counterclockwis
 
 }
+// void Motor::Movetogeter(Motor motor1,int dir_need ,int step_check)
+// {
 
-bool Motor::Signal_send(int dir_need, int step_check ,int motor_id, int current_th)
+
+// digitalWrite(motor1.dir,dir_need);
+// digitalWrite(dir,dir_need);
+// for(int x = 0; x < step_check; x++)
+// {
+//   motor1.signal_send(1);
+//   for(int x = 0; x < 1; x++)
+//       {
+//         digitalWrite(step, HIGH);
+//         delayMicroseconds(1000);
+//         digitalWrite(step, LOW);
+//         delayMicroseconds(1000);
+//         // step_count += 1;
+//         // Print(step_count);
+//       }
+// }
+// }
+
+// void Motor::get_current()
+bool Motor::signal_send(int dir_need, int step_check ,int motor_id, int current_th)
 {  float current_mA = 0.0;
    digitalWrite(dir,dir_need);
    
     for(int x = 0; x < step_check; x++)
       {
         digitalWrite(step, HIGH);
-        delayMicroseconds(delay_num_valve);
+        delayMicroseconds(100);
         digitalWrite(step, LOW);
-        delayMicroseconds(delay_num_valve);//150
+        delayMicroseconds(100);//150
         count += 1;
         // Print(step_count);
 
         if (millis()- previousMillis >= 50) {
           previousMillis = millis();
   
-        // unsigned lEnableg start = millis();
+        // unsigned long start = millis();
           current_mA = ina226.getCurrent_mA();
           estimated_value = simpleKalmanFilter.updateEstimate(current_mA);
-
+          // Serial.print(current_mA);
+          
+          
+          // Serial.print(motor_id);
+          
+          // Serial.print(",");
+          // Serial.println(estimated_value);
           if(estimated_value >= current_th && dir_need == 0){
             num_step = count;
             return true;
 
           }
-      // unsigned lEnableg stop = millis();
+      // unsigned long stop = millis();
       // Serial.print(",");
       // Serial.println(stop-start);
       }
@@ -323,8 +439,10 @@ bool Motor::Signal_send(int dir_need, int step_check ,int motor_id, int current_
 bool Motor::Close()
 {
   Move(0,num_step,150);
+
+
 }
 bool Motor::Open()
 { 
-  Move(1,num_step,150);
+  Move(1,6000,150);
 }
