@@ -428,16 +428,13 @@ void loop() {
                state_command = 0;
                break;
 
-      case 3:  Priming();
-               
+      case 3:  Priming();              
                break;
 
-      case 4:  Drain();
-               
+      case 4:  Drain();       
                break;
 
-      case 5:  Fill();
-               
+      case 5:  Fill();           
                break;
 
       case 6:  Dwell();
