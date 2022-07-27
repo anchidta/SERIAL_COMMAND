@@ -4,7 +4,8 @@
 #include <Wire.h>
 #include <INA226_WE.h>
 #include <SimpleKalmanFilter.h>
-
+//DIR = high CLOCKWISE 1 pull
+//DIR = LOW COUTERCLOCKWISE 0 push
 SimpleKalmanFilter simpleKalmanFilter(2, 2, 0.01);
 
 Motor::Motor(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin,unsigned char address_id)
@@ -67,17 +68,13 @@ void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin
     reset =reset_pin;
     top_switch = topButtom;
     buttom_switch= bottomButtom;
-
-    pinMode(step, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(dir, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(en, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(sleep, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(reset, OUTPUT); // set LED  pin as OUTPUT
+    pinMode(step, OUTPUT); 
+    pinMode(dir, OUTPUT); 
+    pinMode(en, OUTPUT); 
+    pinMode(sleep, OUTPUT); 
+    pinMode(reset, OUTPUT); 
     pinMode(top_switch, INPUT_PULLUP);
     pinMode(buttom_switch, INPUT_PULLUP);
-
-
-
     digitalWrite(step, LOW);
     digitalWrite(dir,HIGH);
     delayMicroseconds(1);
@@ -88,7 +85,7 @@ void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin
     int Istop = digitalRead(top_switch);
     int Isbottom = digitalRead(buttom_switch);
 
-
+    
     if(Istop == HIGH && Isbottom == HIGH)
     { 
       switch_state = 1;
@@ -105,6 +102,7 @@ void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin
       digitalWrite(dir,LOW);
     }
 
+    
     while (1)
       {
         for(int x = 0; x < 300; x++)
@@ -171,17 +169,12 @@ void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin
       // Serial.println("setup");
       for(int x = 0; x < 23903; x++)
       {
-
         digitalWrite(step, HIGH);
         delayMicroseconds(75);
         digitalWrite(step, LOW);
         delayMicroseconds(75);
-
-
       }
       Disable();
-
-
 }
 
 void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin,unsigned char address_id)
@@ -194,12 +187,11 @@ void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin
     reset =reset_pin;
     address = address_id;
     ina226 = INA226_WE(address_id);
-    pinMode(step_pin, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(dir_pin, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(en_pin, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(sleep_pin, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(reset_pin, OUTPUT); // set LED  pin as OUTPUT
-
+    pinMode(step_pin, OUTPUT); 
+    pinMode(dir_pin, OUTPUT);
+    pinMode(en_pin, OUTPUT); 
+    pinMode(sleep_pin, OUTPUT); 
+    pinMode(reset_pin, OUTPUT); 
     ina226.init();
     digitalWrite(en, HIGH);
     // digitalWrite(reset, LOW);
@@ -217,12 +209,11 @@ void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin
     en = en_pin;
     sleep =sleep_pin;
     reset =reset_pin;
-
-    pinMode(step_pin, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(dir_pin, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(en_pin, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(sleep_pin, OUTPUT); // set LED  pin as OUTPUT
-    pinMode(reset_pin, OUTPUT); // set LED  pin as OUTPUT
+    pinMode(step_pin, OUTPUT);
+    pinMode(dir_pin, OUTPUT); 
+    pinMode(en_pin, OUTPUT); 
+    pinMode(sleep_pin, OUTPUT); 
+    pinMode(reset_pin, OUTPUT); 
     digitalWrite(en, HIGH);
     // digitalWrite(reset, LOW);
     digitalWrite(dir, HIGH);
@@ -253,6 +244,7 @@ void Motor::Reset_Enable()
 
 //DIR = high CLOCKWISE 1 pull
 //DIR = LOW COUTERCLOCKWISE 0 push
+
 void Motor::Move(uint8_t dir_need,int step_check,int delay_ms)
 {
     digitalWrite(step, LOW);
@@ -269,7 +261,6 @@ void Motor::Move(uint8_t dir_need,int step_check,int delay_ms)
         }
         digitalWrite(2, HIGH);
         delayMicroseconds(1);
-
 }
 
 bool Motor::Signal_send(int dir_need, int step_check ,int motor_id, int current_th)
