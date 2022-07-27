@@ -2,18 +2,72 @@
 //#include<control.h>
 #include <Wire.h>
 #include <INA226_WE.h>
-#define I2C_ADDRESS 0x40
-#define I2C_ADDRESS_1 0x44
-#define I2C_ADDRESS_2 0x41
-#define I2C_ADDRESS_3 0x45
-String inputString= "";         // a String to hold incoming data
-bool stringComplete = false; 
-int PWM = A5;
+
+
+#define I2C_ADDRESS_MOTOR1 0x40
+#define I2C_ADDRESS_MOTOR2 0x44
+#define I2C_ADDRESS_MOTOR3 0x41
+#define I2C_ADDRESS_MOTOR4 0x45
+
+//void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin)
+//   motor_1.Init(A4, 44, 38, 42, 40, I2C_ADDRESS_MOTOR1); /
+//   motor_2.Init(A3,36,30,34,32, I2C_ADDRESS_MOTOR2);/
+//   motor_3.Init(A2,28,22,26,24, I2C_ADDRESS_MOTOR3);/
+//   motor_4.Init(A1,29,35,31,33, I2C_ADDRESS_MOTOR4);/
+//   digitalWrite(PWM, HIGH);
+//   pump.Init(A0,37,43,39,41);//1
+
+// void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin)
+//   motor_1.Init(pin_step_MOTOR1, pin_DIR_MOTOR1, pin_EN_MOTOR1, pin_SLP_MOTOR1, pin_RST_MOTOR1, I2C_ADDRESS_MOTOR1); /
+
+#define pin_step_MOTOR1 A4
+#define pin_DIR_MOTOR1 44
+#define pin_EN_MOTOR1 38
+#define pin_SLP_MOTOR1 42
+#define pin_RST_MOTOR1 40
+
+#define pin_step_MOTOR2 A3
+#define pin_DIR_MOTOR2 36
+#define pin_EN_MOTOR2 30
+#define pin_SLP_MOTOR2 34
+#define pin_RST_MOTOR2 32
+
+#define pin_step_MOTOR3 A2
+#define pin_DIR_MOTOR3 28
+#define pin_EN_MOTOR3 22
+#define pin_SLP_MOTOR3 26
+#define pin_RST_MOTOR3 24
+
+#define pin_step_MOTOR4 A1
+#define pin_DIR_MOTOR4 29
+#define pin_EN_MOTOR4 35
+#define pin_SLP_MOTOR4 31
+#define pin_RST_MOTOR4 33
+
+#define pin_step_PUMP A0
+#define pin_DIR_PUMP 37
+#define pin_EN_PUMP 43
+#define pin_SLP_PUMP 39
+#define pin_RST_PUMP 41
+
+#define pin_top_switch 51
+#define pin_buttom_switch 52
+
+int PWM = A5;//MOSFET SEND SIGNAL PIN
 int MS1 = 50;
 int MS2 = 48;
 int MS3 = 46;
+
+//parameter
+#define current_limit 170//170mA
+#define Step_pull_up_down 6000
+#define Step_close_motor 10000
+
+String inputString= "";  // a String to hold incoming data
+bool stringComplete = false; 
 int loop_time = 1000;
 int state_command = 0;
+//call motor class
 Motor motor_1;
 Motor motor_2;
 Motor motor_3;
@@ -27,7 +81,7 @@ bool Open_all()
    motor_3.On();
    motor_4.On();
    pump.On();
-   move_together(motor_1,motor_2,motor_3,motor_4,1,6000,170);
+   move_together(motor_1,motor_2,motor_3,motor_4,HIGH,Step_pull_up_down,current_limit);
    motor_1.Off();
    motor_2.Off();
    motor_3.Off();
@@ -35,15 +89,18 @@ bool Open_all()
    pump.Off();
 
 }
+
+int delay_ms = 150;
+int step_for_pump_move = 14000;
+
 bool Vacumn(Motor pump)
 {
-pump.Move(HIGH,14000,150);
+   pump.Move(HIGH,step_for_pump_move,delay_ms);
 }
 
 bool Pressure(Motor pump)
 {
-pump.Move(LOW,14000,150);
-
+   pump.Move(LOW,step_for_pump_move,delay_ms);
 }
 
 bool Release_Ps()//Solinoid(H to L)
@@ -94,7 +151,6 @@ bool Drain()
    motor_1.Off();
    motor_4.Off();
    pump.Off();
-
 }
 bool Fill()
 {
@@ -123,7 +179,7 @@ void Dwell()
    motor_3.On();
    motor_4.On();
 
-   move_together(motor_1,motor_2,motor_3,motor_4,0,10000,170);
+   move_together(motor_1,motor_2,motor_3,motor_4,LOW,Step_close_motor,current_limit);
 
    motor_1.Off();
    motor_2.Off();
@@ -137,7 +193,7 @@ void Close_all()
    motor_3.On();
    motor_4.On();
 
-   move_together(motor_1,motor_2,motor_3,motor_4,0,10000,170);
+   move_together(motor_1,motor_2,motor_3,motor_4,LOW,Step_close_motor,current_limit);
 
    motor_1.Off();
    motor_2.Off();
@@ -146,6 +202,8 @@ void Close_all()
 }
 void move_together(Motor motor_1,Motor motor_2,Motor motor3,Motor motor4,int dir_need,int step_check,int current_th)
 {
+   //if dir_need is LOW == motor pull dowm
+   //if dir need is HIGH == motor pull up
   bool status_1 = false;
   bool status_2 = false;
   bool status_3 = false;
@@ -180,21 +238,19 @@ void move_together(Motor motor_1,Motor motor_2,Motor motor3,Motor motor4,int dir
 }
 void setup_4motor()
 {
-
 motor_1.On();
 motor_2.On();
 motor_3.On();
 motor_4.On();
 
-move_together( motor_1, motor_2, motor_3, motor_4,0,720,170);
-move_together( motor_1, motor_2, motor_3, motor_4,0,25000,170);
-move_together( motor_1, motor_2, motor_3, motor_4,1,5000,170);
+move_together( motor_1, motor_2, motor_3, motor_4,LOW,720,current_limit);//delay for current sensor to init itself
+move_together( motor_1, motor_2, motor_3, motor_4,LOW,25000,current_limit);//Close at 25000 step
+move_together( motor_1, motor_2, motor_3, motor_4,HIGH,5000,current_limit);//open 5000 step 
 
 motor_1.Off();
 motor_2.Off();
 motor_3.Off();
 motor_4.Off();
-
 }
 void setup_4motor_part2()
 {
@@ -204,8 +260,8 @@ motor_2.On();
 motor_3.On();
 motor_4.On();
 
-move_together( motor_1, motor_2, motor_3, motor_4,0,720,170);
-move_together( motor_1, motor_2, motor_3, motor_4,0,20000,170);
+move_together( motor_1, motor_2, motor_3, motor_4,LOW,720,current_limit);//delay for current sensor to init itself
+move_together( motor_1, motor_2, motor_3, motor_4,LOW,20000,current_limit);//Close at 20000 step
 
 motor_1.Off();
 motor_2.Off();
@@ -215,12 +271,11 @@ motor_4.Off();
 
 } 
 void setup() {
-  // put your setup code here, to run once:
+
   Serial1.begin(115200);
   inputString.reserve(200);
   Wire.begin();
-  //INA226 init
-  // ina226_1.init();
+
   pinMode(PWM, OUTPUT);
   pinMode(MS1, OUTPUT);
   pinMode(MS2, OUTPUT);
@@ -229,20 +284,17 @@ void setup() {
   digitalWrite(MS1, HIGH);
   digitalWrite(MS2, HIGH);
   digitalWrite(MS3, HIGH);
-  // make the pushbutton’s pin an input:
-  //   pinMode(topButton, INPUT);
-  //   pinMode(bottomButton, INPUT);
-
   //setup motor pin
   //void Motor::Init(int step_pin,int dir_pin,int en_pin,int sleep_pin,int reset_pin)
-  motor_1.Init(A4, 44, 38, 42, 40, I2C_ADDRESS); //5
-  motor_2.Init(A3,36,30,34,32, I2C_ADDRESS_1);//4
-  motor_3.Init(A2,28,22,26,24, I2C_ADDRESS_2);//3
-  motor_4.Init(A1,29,35,31,33, I2C_ADDRESS_3);//2
-   //   Serial1.println("helloworld");
-  digitalWrite(PWM, HIGH);
-  pump.Init(A0,37,43,39,41);//1
-  delay(100);
+   motor_1.Init(pin_step_MOTOR1, pin_DIR_MOTOR1, pin_EN_MOTOR1, pin_SLP_MOTOR1, pin_RST_MOTOR1, I2C_ADDRESS_MOTOR1); /
+   motor_2.Init(pin_step_MOTOR2, pin_DIR_MOTOR2, pin_EN_MOTOR2, pin_SLP_MOTOR2, pin_RST_MOTOR2, I2C_ADDRESS_MOTOR2); /
+   motor_3.Init(pin_step_MOTOR3, pin_DIR_MOTOR3, pin_EN_MOTOR3, pin_SLP_MOTOR3, pin_RST_MOTOR3, I2C_ADDRESS_MOTOR3); /
+   motor_4.Init(pin_step_MOTOR4, pin_DIR_MOTOR4, pin_EN_MOTOR4, pin_SLP_MOTOR4, pin_RST_MOTOR4, I2C_ADDRESS_MOTOR4); /
+
+
+   digitalWrite(PWM, HIGH);
+   pump.Init(pin_step_PUMP, pin_DIR_PUMP, pin_EN_PUMP, pin_SLP_PUMP, pin_RST_PUMP); /
+   delay(100);
 
 }
 
@@ -377,7 +429,7 @@ void loop() {
    {
       case 0:  break;//idie
 
-      case 1:  pump.Init(A0,37,43,39,41,51,52);//1
+      case 1:  pump.Init(pin_step_PUMP, pin_DIR_PUMP, pin_EN_PUMP, pin_SLP_PUMP, pin_RST_PUMP, pin_top_switch ,pin_buttom_switch); ///1
                delay(100);
                setup_4motor();
 
